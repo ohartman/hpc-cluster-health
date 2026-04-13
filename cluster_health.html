@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>aurora — Cluster Health</title>
+<style>
+:root {
+    --bg: #0d1117; --bg-elev: #161b22; --bg-row: #1c2128;
+    --border: #30363d; --text: #c9d1d9; --text-dim: #8b949e;
+    --accent: #58a6ff; --ok: #3fb950; --warn: #d29922;
+    --crit: #f85149; --info: #58a6ff;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    font-size: 14px; line-height: 1.5;
+}
+header {
+    background: var(--bg-elev); border-bottom: 1px solid var(--border);
+    padding: 20px 32px; display: flex;
+    justify-content: space-between; align-items: baseline;
+}
+header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+header .meta { color: var(--text-dim); font-size: 13px; }
+header .source-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.04em; margin-left: 8px;
+    background: rgba(88, 166, 255, 0.15); color: var(--accent);
+}
+main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
+section { margin-bottom: 32px; }
+section h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-dim); border-bottom: 1px solid var(--border);
+    padding-bottom: 8px; margin: 0 0 16px; font-weight: 600;
+}
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+.kpi {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px;
+}
+.kpi .label {
+    color: var(--text-dim); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.kpi .value {
+    font-size: 28px; font-weight: 600; margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+}
+.kpi .sub { color: var(--text-dim); font-size: 12px; margin-top: 4px; }
+table {
+    width: 100%; border-collapse: collapse;
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden;
+    font-variant-numeric: tabular-nums;
+}
+th, td {
+    text-align: left; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); font-size: 13px;
+}
+th {
+    background: var(--bg-row); color: var(--text-dim);
+    font-weight: 600; text-transform: uppercase;
+    font-size: 11px; letter-spacing: 0.05em;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg-row); }
+.badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.badge-ok { background: rgba(63, 185, 80, 0.15); color: var(--ok); }
+.badge-warn { background: rgba(210, 153, 34, 0.15); color: var(--warn); }
+.badge-crit { background: rgba(248, 81, 73, 0.15); color: var(--crit); }
+.badge-info { background: rgba(88, 166, 255, 0.15); color: var(--info); }
+.badge-dim { background: rgba(139, 148, 158, 0.15); color: var(--text-dim); }
+.bar {
+    background: var(--bg-row); border-radius: 3px;
+    height: 6px; overflow: hidden; margin-top: 4px;
+}
+.bar-fill { height: 100%; transition: width 0.3s; }
+.bar-ok { background: var(--ok); }
+.bar-warn { background: var(--warn); }
+.bar-crit { background: var(--crit); }
+.alert {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-left: 3px solid var(--text-dim); border-radius: 4px;
+    padding: 10px 14px; margin-bottom: 8px;
+    display: flex; gap: 12px; align-items: baseline;
+}
+.alert-critical { border-left-color: var(--crit); }
+.alert-warning { border-left-color: var(--warn); }
+.alert-info { border-left-color: var(--info); }
+.alert .component {
+    color: var(--text-dim);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px; min-width: 180px;
+}
+.two-col {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 24px;
+}
+@media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+.trend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+.trend-card {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px;
+}
+.trend-card .label {
+    color: var(--text-dim); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.trend-card .value {
+    font-size: 22px; font-weight: 600; margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+}
+.trend-card .delta { font-size: 12px; margin-top: 2px; }
+.delta-up { color: var(--crit); }
+.delta-down { color: var(--ok); }
+.delta-flat { color: var(--text-dim); }
+.trend-card svg { display: block; margin-top: 10px; width: 100%; height: 50px; }
+footer {
+    text-align: center; color: var(--text-dim); font-size: 12px;
+    padding: 24px; border-top: 1px solid var(--border); margin-top: 32px;
+}
+.mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+.empty {
+    color: var(--text-dim); font-style: italic;
+    padding: 16px; text-align: center;
+    background: var(--bg-elev); border: 1px dashed var(--border);
+    border-radius: 6px;
+}
+</style>
+</head>
+<body>
+<header>
+    <h1>aurora
+        <span style="color:var(--text-dim);font-weight:400">cluster health</span>
+        <span class="source-tag">source: sim</span>
+    </h1>
+    <div class="meta">Generated 2026-04-12 20:36:01</div>
+</header>
+<main>
+    <section>
+        <h2>Overview</h2>
+        <div class="kpi-grid"><div class="kpi"><div class="label">Cluster utilization</div><div class="value">64.6%</div><div class="sub">2,191 / 3,392 cores allocated</div></div><div class="kpi"><div class="label">Healthy nodes</div><div class="value">60</div><div class="sub">1 down, 3 draining</div></div><div class="kpi"><div class="label">Jobs running</div><div class="value">66</div><div class="sub">51 pending in queue</div></div><div class="kpi"><div class="label">Storage used</div><div class="value">5.1 PB</div><div class="sub">of 7.1 PB total</div></div></div>
+    </section>
+
+    <section>
+        <h2>Trends (last 7 days)</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:12px">5 snapshots over 0.0 hours (window: last 7 days)</div><div class="trend-grid"><div class="trend-card"><div class="label">Utilization</div><div class="value">64.6%</div><div><span class="delta delta-down">down 3.7% (-2.5%)</span></div><svg viewBox="0 0 240 50" xmlns="http://www.w3.org/2000/svg"><polyline fill="none" stroke="#58a6ff" stroke-width="1.5" points="4.0,25.1 62.0,23.3 120.0,44.8 178.0,4.0 236.0,46.0"/><circle cx="236.0" cy="46.0" r="2.5" fill="#58a6ff"/></svg></div><div class="trend-card"><div class="label">Jobs running</div><div class="value">66</div><div><span class="delta delta-flat">up 3.1% (+2.0)</span></div><svg viewBox="0 0 240 50" xmlns="http://www.w3.org/2000/svg"><polyline fill="none" stroke="#3fb950" stroke-width="1.5" points="4.0,46.0 62.0,4.0 120.0,23.4 178.0,29.8 236.0,39.5"/><circle cx="236.0" cy="39.5" r="2.5" fill="#3fb950"/></svg></div><div class="trend-card"><div class="label">Pending queue depth</div><div class="value">51</div><div><span class="delta delta-down">down 7.3% (-4.0)</span></div><svg viewBox="0 0 240 50" xmlns="http://www.w3.org/2000/svg"><polyline fill="none" stroke="#d29922" stroke-width="1.5" points="4.0,4.0 62.0,46.0 120.0,15.2 178.0,37.6 236.0,15.2"/><circle cx="236.0" cy="15.2" r="2.5" fill="#d29922"/></svg></div><div class="trend-card"><div class="label">Storage used</div><div class="value">5.13 PB</div><div><span class="delta delta-flat">down 16.4% (-1029.4 TB)</span></div><svg viewBox="0 0 240 50" xmlns="http://www.w3.org/2000/svg"><polyline fill="none" stroke="#58a6ff" stroke-width="1.5" points="4.0,4.0 62.0,35.4 120.0,29.7 178.0,16.0 236.0,46.0"/><circle cx="236.0" cy="46.0" r="2.5" fill="#58a6ff"/></svg></div><div class="trend-card"><div class="label">Nodes down</div><div class="value">1</div><div><span class="delta delta-flat">flat</span></div><svg viewBox="0 0 240 50" xmlns="http://www.w3.org/2000/svg"><polyline fill="none" stroke="#f85149" stroke-width="1.5" points="4.0,25.0 62.0,4.0 120.0,46.0 178.0,46.0 236.0,25.0"/><circle cx="236.0" cy="25.0" r="2.5" fill="#f85149"/></svg></div></div>
+    </section>
+
+    <section>
+        <h2>Active alerts (52)</h2>
+        <div class="alert alert-critical"><span class="component">node/cn018</span><span class="badge badge-crit">critical</span><span>Memory pressure 99% (507/512 GB)</span></div><div class="alert alert-critical"><span class="component">node/cn022</span><span class="badge badge-crit">critical</span><span>Load 54.2 on 48 cores (113% of capacity)</span></div><div class="alert alert-critical"><span class="component">node/cn024</span><span class="badge badge-crit">critical</span><span>Memory pressure 98% (504/512 GB)</span></div><div class="alert alert-critical"><span class="component">node/cn025</span><span class="badge badge-crit">critical</span><span>Node DOWN — GPU ECC errors</span></div><div class="alert alert-critical"><span class="component">node/cn028</span><span class="badge badge-crit">critical</span><span>Memory pressure 99% (380/384 GB)</span></div><div class="alert alert-critical"><span class="component">node/cn031</span><span class="badge badge-crit">critical</span><span>Memory pressure 99% (1521/1536 GB)</span></div><div class="alert alert-critical"><span class="component">node/cn033</span><span class="badge badge-crit">critical</span><span>Load 54.2 on 48 cores (113% of capacity)</span></div><div class="alert alert-critical"><span class="component">node/cn033</span><span class="badge badge-crit">critical</span><span>Memory pressure 99% (380/384 GB)</span></div><div class="alert alert-warning"><span class="component">node/cn002</span><span class="badge badge-warn">warning</span><span>High load: 50.8 (106% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn005</span><span class="badge badge-warn">warning</span><span>High load: 58.2 (91% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn007</span><span class="badge badge-warn">warning</span><span>High load: 42.7 (89% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn008</span><span class="badge badge-warn">warning</span><span>High load: 28.1 (88% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn010</span><span class="badge badge-warn">warning</span><span>High load: 41.3 (86% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn011</span><span class="badge badge-warn">warning</span><span>Node draining — GPU ECC errors</span></div><div class="alert alert-warning"><span class="component">node/cn012</span><span class="badge badge-warn">warning</span><span>High load: 55.4 (87% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn015</span><span class="badge badge-warn">warning</span><span>High load: 65.2 (102% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn016</span><span class="badge badge-warn">warning</span><span>High load: 44.1 (92% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn017</span><span class="badge badge-warn">warning</span><span>Memory at 89%</span></div><div class="alert alert-warning"><span class="component">node/cn018</span><span class="badge badge-warn">warning</span><span>High load: 58.7 (92% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn019</span><span class="badge badge-warn">warning</span><span>Node draining — Not responding</span></div><div class="alert alert-warning"><span class="component">node/cn020</span><span class="badge badge-warn">warning</span><span>High load: 52.2 (109% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn020</span><span class="badge badge-warn">warning</span><span>Memory at 86%</span></div><div class="alert alert-warning"><span class="component">node/cn022</span><span class="badge badge-warn">warning</span><span>Memory at 88%</span></div><div class="alert alert-warning"><span class="component">node/cn024</span><span class="badge badge-warn">warning</span><span>High load: 55.9 (87% of capacity)</span></div><div class="alert alert-warning"><span class="component">node/cn028</span><span class="badge badge-warn">warning</span><span>High load: 48.3 (101% of capacity)</span></div><div class="alert"><span>... and 27 more</span></div>
+    </section>
+
+    <section>
+        <h2>Parallel filesystems</h2>
+        <table><thead><tr><th>Mount</th><th>Type</th><th>Capacity</th><th>Inodes</th><th>Read</th><th>Write</th><th>OSTs</th></tr></thead><tbody><tr><td class='mono'>/scratch</td><td><span class='badge badge-dim'>LUSTRE</span></td><td>1420/2048 TB<div class="bar"><div class="bar-fill bar-ok" style="width: 69.4%"></div></div></td><td>50%</td><td>47.4 GB/s</td><td>52.1 GB/s</td><td>64/64</td></tr><tr><td class='mono'>/home</td><td><span class='badge badge-dim'>NFS</span></td><td>71/128 TB<div class="bar"><div class="bar-fill bar-ok" style="width: 55.5%"></div></div></td><td>68%</td><td>5.9 GB/s</td><td>1.7 GB/s</td><td>—</td></tr><tr><td class='mono'>/projects</td><td><span class='badge badge-dim'>BEEGFS</span></td><td>798/1024 TB<div class="bar"><div class="bar-fill bar-ok" style="width: 78.0%"></div></div></td><td>42%</td><td>23.5 GB/s</td><td>35.8 GB/s</td><td>32/32</td></tr><tr><td class='mono'>/archive</td><td><span class='badge badge-dim'>GPFS</span></td><td>2964/4096 TB<div class="bar"><div class="bar-fill bar-ok" style="width: 72.4%"></div></div></td><td>25%</td><td>8.2 GB/s</td><td>11.4 GB/s</td><td>—</td></tr></tbody></table>
+    </section>
+
+    <div class="two-col">
+        <section>
+            <h2>Top running jobs by core count</h2>
+            <table><thead><tr><th>Job ID</th><th>User</th><th>Name</th><th>Nodes</th><th>Cores</th><th>Runtime</th><th>Limit</th></tr></thead><tbody><tr><td class='mono'>1000002</td><td>ahmadi</td><td>mpi_solve</td><td>32</td><td>768</td><td>23.0h</td><td>4h</td></tr><tr><td class='mono'>1000032</td><td>fitzgerald</td><td>ansys_cfd</td><td>16</td><td>512</td><td>30.7h</td><td>4h</td></tr><tr><td class='mono'>1000109</td><td>lindberg</td><td>namd_protein</td><td>16</td><td>512</td><td>15.2h</td><td>1h</td></tr><tr><td class='mono'>1000077</td><td>okonkwo</td><td>namd_protein</td><td>8</td><td>384</td><td>12.1h</td><td>24h</td></tr><tr><td class='mono'>1000092</td><td>vasquez</td><td>openfoam_sim</td><td>8</td><td>256</td><td>1.9h</td><td>1h</td></tr><tr><td class='mono'>1000035</td><td>fitzgerald</td><td>tf_train</td><td>8</td><td>192</td><td>15.6h</td><td>72h</td></tr><tr><td class='mono'>1000076</td><td>lindberg</td><td>tf_train</td><td>4</td><td>192</td><td>11.6h</td><td>24h</td></tr><tr><td class='mono'>1000084</td><td>kowalski</td><td>ansys_cfd</td><td>4</td><td>192</td><td>0.3h</td><td>72h</td></tr><tr><td class='mono'>1000100</td><td>fitzgerald</td><td>vasp_relax</td><td>4</td><td>192</td><td>14.1h</td><td>48h</td></tr><tr><td class='mono'>1000105</td><td>ahmadi</td><td>ansys_cfd</td><td>4</td><td>192</td><td>10.5h</td><td>12h</td></tr></tbody></table>
+        </section>
+        <section>
+            <h2>Queue by partition</h2>
+            <table><thead><tr><th>Partition</th><th>Running</th><th>Pending</th></tr></thead><tbody><tr><td>bigmem</td><td>8</td><td>8</td></tr><tr><td>compute</td><td>39</td><td>27</td></tr><tr><td>debug</td><td>3</td><td>5</td></tr><tr><td>gpu</td><td>16</td><td>11</td></tr></tbody></table>
+        </section>
+    </div>
+
+    <section>
+        <h2>InfiniBand fabric (HDR 200 Gb/s)</h2>
+        <table><thead><tr><th>Switch</th><th>Active</th><th>Down</th><th>Polling</th><th>High Errors</th></tr></thead><tbody><tr><td class='mono'>ib-sw01</td><td>8</td><td>0</td><td>0</td><td>0</td></tr><tr><td class='mono'>ib-sw02</td><td>8</td><td>0</td><td>0</td><td>0</td></tr><tr><td class='mono'>ib-sw03</td><td>8</td><td>0</td><td>0</td><td>0</td></tr><tr><td class='mono'>ib-sw04</td><td>8</td><td>0</td><td>0</td><td>0</td></tr></tbody></table>
+    </section>
+
+    <section>
+        <h2>Compute nodes — problems and sample</h2>
+        <table><thead><tr><th>Node</th><th>Partition</th><th>State</th><th>Cores</th><th>Memory</th><th>Load</th><th>GPU</th><th>Uptime</th><th>Reason</th></tr></thead><tbody><tr><td class='mono'>cn002</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>47/48<div class="bar"><div class="bar-fill bar-crit" style="width: 97.9%"></div></div></td><td>296/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 77.0%"></div></div></td><td>50.77</td><td>0/0</td><td>169d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn005</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>56/64<div class="bar"><div class="bar-fill bar-warn" style="width: 87.5%"></div></div></td><td>401/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 78.3%"></div></div></td><td>58.19</td><td>3/4</td><td>33d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn007</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>42/48<div class="bar"><div class="bar-fill bar-warn" style="width: 87.5%"></div></div></td><td>287/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 74.8%"></div></div></td><td>42.71</td><td>0/0</td><td>155d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn008</td><td>debug</td><td><span class="badge badge-info">allocated</span></td><td>28/32<div class="bar"><div class="bar-fill bar-warn" style="width: 87.5%"></div></div></td><td>145/192 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 75.4%"></div></div></td><td>28.06</td><td>0/0</td><td>139d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn010</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>44/48<div class="bar"><div class="bar-fill bar-warn" style="width: 91.7%"></div></div></td><td>295/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 76.7%"></div></div></td><td>41.27</td><td>0/0</td><td>39d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn011</td><td>compute</td><td><span class="badge badge-warn">drain</span></td><td>0/48<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0.00</td><td>0/0</td><td>35d</td><td class='mono' style='color:var(--text-dim)'>GPU ECC errors</td></tr><tr><td class='mono'>cn012</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>56/64<div class="bar"><div class="bar-fill bar-warn" style="width: 87.5%"></div></div></td><td>354/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 69.2%"></div></div></td><td>55.38</td><td>3/4</td><td>83d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn015</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>61/64<div class="bar"><div class="bar-fill bar-crit" style="width: 95.3%"></div></div></td><td>359/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 70.1%"></div></div></td><td>65.15</td><td>3/4</td><td>118d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn016</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>41/48<div class="bar"><div class="bar-fill bar-warn" style="width: 85.4%"></div></div></td><td>326/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 84.9%"></div></div></td><td>44.10</td><td>0/0</td><td>111d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn017</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>40/48<div class="bar"><div class="bar-fill bar-warn" style="width: 83.3%"></div></div></td><td>341/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 88.9%"></div></div></td><td>40.46</td><td>0/0</td><td>75d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn018</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>63/64<div class="bar"><div class="bar-fill bar-crit" style="width: 98.4%"></div></div></td><td>507/512 GB<div class="bar"><div class="bar-fill bar-crit" style="width: 99.0%"></div></div></td><td>58.67</td><td>3/4</td><td>61d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn019</td><td>compute</td><td><span class="badge badge-warn">drain</span></td><td>0/48<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0.00</td><td>0/0</td><td>167d</td><td class='mono' style='color:var(--text-dim)'>Not responding</td></tr><tr><td class='mono'>cn020</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>47/48<div class="bar"><div class="bar-fill bar-crit" style="width: 97.9%"></div></div></td><td>331/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 86.2%"></div></div></td><td>52.24</td><td>0/0</td><td>17d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn022</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>48/48<div class="bar"><div class="bar-fill bar-crit" style="width: 100.0%"></div></div></td><td>339/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 88.3%"></div></div></td><td>54.20</td><td>0/0</td><td>125d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn024</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>60/64<div class="bar"><div class="bar-fill bar-crit" style="width: 93.8%"></div></div></td><td>504/512 GB<div class="bar"><div class="bar-fill bar-crit" style="width: 98.5%"></div></div></td><td>55.94</td><td>3/4</td><td>125d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn025</td><td>gpu</td><td><span class="badge badge-crit">down</span></td><td>0/64<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0.00</td><td>0/4</td><td>158d</td><td class='mono' style='color:var(--text-dim)'>GPU ECC errors</td></tr><tr><td class='mono'>cn028</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>48/48<div class="bar"><div class="bar-fill bar-crit" style="width: 100.0%"></div></div></td><td>380/384 GB<div class="bar"><div class="bar-fill bar-crit" style="width: 99.0%"></div></div></td><td>48.29</td><td>0/0</td><td>105d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn031</td><td>bigmem</td><td><span class="badge badge-info">allocated</span></td><td>96/96<div class="bar"><div class="bar-fill bar-crit" style="width: 100.0%"></div></div></td><td>1521/1536 GB<div class="bar"><div class="bar-fill bar-crit" style="width: 99.0%"></div></div></td><td>98.84</td><td>0/0</td><td>172d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn033</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>48/48<div class="bar"><div class="bar-fill bar-crit" style="width: 100.0%"></div></div></td><td>380/384 GB<div class="bar"><div class="bar-fill bar-crit" style="width: 99.0%"></div></div></td><td>54.16</td><td>0/0</td><td>91d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn035</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>41/48<div class="bar"><div class="bar-fill bar-warn" style="width: 85.4%"></div></div></td><td>298/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 77.6%"></div></div></td><td>41.32</td><td>0/0</td><td>49d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn036</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>48/48<div class="bar"><div class="bar-fill bar-crit" style="width: 100.0%"></div></div></td><td>276/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 71.8%"></div></div></td><td>48.29</td><td>0/0</td><td>178d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn037</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>58/64<div class="bar"><div class="bar-fill bar-warn" style="width: 90.6%"></div></div></td><td>358/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 69.9%"></div></div></td><td>56.51</td><td>3/4</td><td>137d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn038</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>44/48<div class="bar"><div class="bar-fill bar-warn" style="width: 91.7%"></div></div></td><td>319/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 83.0%"></div></div></td><td>45.00</td><td>0/0</td><td>15d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn039</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>45/48<div class="bar"><div class="bar-fill bar-crit" style="width: 93.8%"></div></div></td><td>284/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 73.8%"></div></div></td><td>42.88</td><td>0/0</td><td>22d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn040</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>43/48<div class="bar"><div class="bar-fill bar-warn" style="width: 89.6%"></div></div></td><td>354/384 GB<div class="bar"><div class="bar-fill bar-crit" style="width: 92.2%"></div></div></td><td>43.89</td><td>0/0</td><td>62d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn041</td><td>bigmem</td><td><span class="badge badge-info">allocated</span></td><td>89/96<div class="bar"><div class="bar-fill bar-crit" style="width: 92.7%"></div></div></td><td>1202/1536 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 78.3%"></div></div></td><td>89.27</td><td>0/0</td><td>30d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn044</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>55/64<div class="bar"><div class="bar-fill bar-warn" style="width: 85.9%"></div></div></td><td>411/512 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 80.3%"></div></div></td><td>54.79</td><td>3/4</td><td>163d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn048</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>64/64<div class="bar"><div class="bar-fill bar-crit" style="width: 100.0%"></div></div></td><td>482/512 GB<div class="bar"><div class="bar-fill bar-crit" style="width: 94.0%"></div></div></td><td>66.30</td><td>4/4</td><td>122d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn049</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>43/48<div class="bar"><div class="bar-fill bar-warn" style="width: 89.6%"></div></div></td><td>349/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 91.0%"></div></div></td><td>45.01</td><td>0/0</td><td>118d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn050</td><td>debug</td><td><span class="badge badge-info">allocated</span></td><td>32/32<div class="bar"><div class="bar-fill bar-crit" style="width: 100.0%"></div></div></td><td>163/192 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 85.1%"></div></div></td><td>34.44</td><td>0/0</td><td>128d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn051</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>44/48<div class="bar"><div class="bar-fill bar-warn" style="width: 91.7%"></div></div></td><td>284/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 73.9%"></div></div></td><td>46.40</td><td>0/0</td><td>125d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn053</td><td>gpu</td><td><span class="badge badge-warn">drain</span></td><td>0/64<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 0.0%"></div></div></td><td>0.00</td><td>0/4</td><td>165d</td><td class='mono' style='color:var(--text-dim)'>DIMM failure slot 3</td></tr><tr><td class='mono'>cn054</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>42/48<div class="bar"><div class="bar-fill bar-warn" style="width: 87.5%"></div></div></td><td>303/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 78.9%"></div></div></td><td>41.74</td><td>0/0</td><td>93d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn056</td><td>gpu</td><td><span class="badge badge-info">allocated</span></td><td>59/64<div class="bar"><div class="bar-fill bar-crit" style="width: 92.2%"></div></div></td><td>395/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 77.1%"></div></div></td><td>57.74</td><td>3/4</td><td>146d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn057</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>43/48<div class="bar"><div class="bar-fill bar-warn" style="width: 89.6%"></div></div></td><td>353/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 91.9%"></div></div></td><td>43.12</td><td>0/0</td><td>129d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn060</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>47/48<div class="bar"><div class="bar-fill bar-crit" style="width: 97.9%"></div></div></td><td>304/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 79.2%"></div></div></td><td>46.63</td><td>0/0</td><td>9d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn064</td><td>debug</td><td><span class="badge badge-info">allocated</span></td><td>31/32<div class="bar"><div class="bar-fill bar-crit" style="width: 96.9%"></div></div></td><td>146/192 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 76.0%"></div></div></td><td>31.50</td><td>0/0</td><td>177d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn001</td><td>gpu</td><td><span class="badge badge-info">mixed</span></td><td>31/64<div class="bar"><div class="bar-fill bar-ok" style="width: 48.4%"></div></div></td><td>201/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 39.2%"></div></div></td><td>30.86</td><td>1/4</td><td>100d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn003</td><td>compute</td><td><span class="badge badge-ok">idle</span></td><td>1/48<div class="bar"><div class="bar-fill bar-ok" style="width: 2.1%"></div></div></td><td>14/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 3.5%"></div></div></td><td>1.75</td><td>0/0</td><td>148d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn004</td><td>compute</td><td><span class="badge badge-ok">idle</span></td><td>1/48<div class="bar"><div class="bar-fill bar-ok" style="width: 2.1%"></div></div></td><td>11/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 3.0%"></div></div></td><td>1.48</td><td>0/0</td><td>99d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn006</td><td>compute</td><td><span class="badge badge-info">mixed</span></td><td>24/48<div class="bar"><div class="bar-fill bar-ok" style="width: 50.0%"></div></div></td><td>195/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 50.9%"></div></div></td><td>26.65</td><td>0/0</td><td>168d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn009</td><td>compute</td><td><span class="badge badge-ok">idle</span></td><td>2/48<div class="bar"><div class="bar-fill bar-ok" style="width: 4.2%"></div></div></td><td>18/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 4.8%"></div></div></td><td>2.27</td><td>0/0</td><td>52d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn013</td><td>compute</td><td><span class="badge badge-info">mixed</span></td><td>29/48<div class="bar"><div class="bar-fill bar-ok" style="width: 60.4%"></div></div></td><td>245/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 63.8%"></div></div></td><td>31.16</td><td>0/0</td><td>29d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn014</td><td>gpu</td><td><span class="badge badge-ok">idle</span></td><td>4/64<div class="bar"><div class="bar-fill bar-ok" style="width: 6.2%"></div></div></td><td>25/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 4.9%"></div></div></td><td>4.20</td><td>0/4</td><td>154d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn021</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>41/48<div class="bar"><div class="bar-fill bar-warn" style="width: 85.4%"></div></div></td><td>317/384 GB<div class="bar"><div class="bar-fill bar-warn" style="width: 82.4%"></div></div></td><td>38.72</td><td>0/0</td><td>93d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn023</td><td>gpu</td><td><span class="badge badge-ok">idle</span></td><td>3/64<div class="bar"><div class="bar-fill bar-ok" style="width: 4.7%"></div></div></td><td>23/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 4.5%"></div></div></td><td>3.09</td><td>0/4</td><td>148d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn026</td><td>compute</td><td><span class="badge badge-info">allocated</span></td><td>42/48<div class="bar"><div class="bar-fill bar-warn" style="width: 87.5%"></div></div></td><td>257/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 67.0%"></div></div></td><td>40.29</td><td>0/0</td><td>133d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn027</td><td>gpu</td><td><span class="badge badge-info">mixed</span></td><td>50/64<div class="bar"><div class="bar-fill bar-ok" style="width: 78.1%"></div></div></td><td>308/512 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 60.1%"></div></div></td><td>50.74</td><td>3/4</td><td>3d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn029</td><td>compute</td><td><span class="badge badge-ok">idle</span></td><td>1/48<div class="bar"><div class="bar-fill bar-ok" style="width: 2.1%"></div></div></td><td>11/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 2.9%"></div></div></td><td>1.37</td><td>0/0</td><td>40d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn030</td><td>compute</td><td><span class="badge badge-info">mixed</span></td><td>23/48<div class="bar"><div class="bar-fill bar-ok" style="width: 47.9%"></div></div></td><td>184/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 47.9%"></div></div></td><td>22.97</td><td>0/0</td><td>106d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn032</td><td>compute</td><td><span class="badge badge-ok">idle</span></td><td>3/48<div class="bar"><div class="bar-fill bar-ok" style="width: 6.2%"></div></div></td><td>26/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 6.7%"></div></div></td><td>4.15</td><td>0/0</td><td>119d</td><td class='mono' style='color:var(--text-dim)'></td></tr><tr><td class='mono'>cn034</td><td>compute</td><td><span class="badge badge-info">mixed</span></td><td>22/48<div class="bar"><div class="bar-fill bar-ok" style="width: 45.8%"></div></div></td><td>152/384 GB<div class="bar"><div class="bar-fill bar-ok" style="width: 39.6%"></div></div></td><td>24.42</td><td>0/0</td><td>55d</td><td class='mono' style='color:var(--text-dim)'></td></tr></tbody></table>
+    </section>
+</main>
+<footer>
+    Generated by hpc_cluster_health.py — source: sim.
+    History persisted to SQLite for trend analysis. In production, regenerate
+    every 60 seconds via cron or systemd timer and serve from a shared web root.
+</footer>
+</body>
+</html>

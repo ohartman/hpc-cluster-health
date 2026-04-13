@@ -1,0 +1,43 @@
+# hpc_monitor.toml — configuration for hpc_cluster_health.py
+#
+# Copy this file to hpc_monitor.toml and edit for your environment.
+# CLI flags override anything set here.
+
+[cluster]
+name = "aurora"
+# Data source: "sim" (synthetic), "slurm" (shell out to sinfo/squeue),
+# or "auto" (try slurm, fall back to sim if commands aren't on PATH).
+source = "sim"
+# Number of nodes to simulate when source = "sim". Ignored otherwise.
+sim_nodes = 64
+
+[partitions]
+# Partitions to include. Empty list = include all partitions found.
+include = []
+
+[history]
+# SQLite database path for trend data. Relative paths resolve against
+# the script's working directory.
+database = "history.db"
+# How many days of history to display in the trends section.
+display_days = 7
+# How many days of history to retain. Older rows are pruned on each run.
+retention_days = 90
+
+[thresholds.load]
+# Fraction of core count. 0.85 = warn when 5-min load >= 85% of cores.
+warning = 0.85
+critical = 1.10
+
+[thresholds.memory]
+warning = 0.85
+critical = 0.95
+
+[thresholds.storage]
+warning = 0.80
+critical = 0.92
+
+[thresholds.queue]
+# Job pending time in hours.
+wait_warning_hours = 4.0
+wait_critical_hours = 12.0
