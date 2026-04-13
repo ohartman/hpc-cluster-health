@@ -1,0 +1,22 @@
+# Local development artifacts that should never be in the image
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Local state
+history.db
+cluster_health.html
+hpc_monitor.toml
+
+# Development files not needed at runtime
+tests/
+fixtures/
+.git/
+.gitignore
+.DS_Store
+
+# Documentation stays in the repo but doesn't need to be in the image
+README.md

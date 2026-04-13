@@ -1,0 +1,47 @@
+# compose.yaml — one-command startup for the HPC monitor service.
+#
+# Works with both `docker compose up` and `podman compose up`.
+#
+# Usage:
+#   docker compose up              # build + start, foreground
+#   docker compose up -d           # background
+#   docker compose logs -f monitor # follow logs
+#   docker compose down            # stop and remove
+#   docker compose down -v         # stop and delete the history volume
+#
+# The named volume 'hpc_data' holds the SQLite history database so trend
+# data survives container restarts. If you want to customize the config
+# or inspect the database from the host, replace the volume line below
+# with a bind mount:
+#
+#     volumes:
+#       - ./data:/data
+#
+# and run `mkdir -p data` on the host before `docker compose up`. You may
+# also need to `chmod 777 data` depending on how your Docker is configured.
+
+services:
+  monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hpc-cluster-health:latest
+    container_name: hpc-monitor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - hpc_data:/data
+    environment:
+      # Python unbuffered so logs flush immediately instead of being
+      # stuck in the buffer when running under docker logs
+      PYTHONUNBUFFERED: "1"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz').status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  hpc_data:
