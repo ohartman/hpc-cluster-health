@@ -8,6 +8,7 @@ import sys
 
 from .alerts import build_snapshot, evaluate_alerts
 from .collectors import filesystems as fs_real
+from .collectors import infiniband as ib_real
 from .collectors import sim
 from .collectors import slurm
 from .config import Config
@@ -43,13 +44,22 @@ def collect_report(cfg: Config, source: str) -> ClusterReport:
     # Filesystem collection: in slurm/real mode, try the real parsers
     # (lfs df, df -hT, beegfs-df). If none of those commands are available
     # on this host, fall back to simulation so the dashboard still renders.
-    # InfiniBand collection is still simulation-only — phase 3 adds real.
     if resolved == "slurm":
         filesystems = fs_real.collect_all()
         if not filesystems:
             filesystems = sim.collect_filesystems()
     else:
         filesystems = sim.collect_filesystems()
+
+    # InfiniBand collection: same pattern. In slurm mode, try ibstat (plus
+    # ibdiagnet if available for error counts). Fall back to simulation if
+    # ibstat isn't on PATH.
+    if resolved == "slurm":
+        ib_links = ib_real.collect_all()
+        if not ib_links:
+            ib_links = sim.collect_infiniband()
+    else:
+        ib_links = sim.collect_infiniband()
 
     return ClusterReport(
         generated_at=dt.datetime.now(),
@@ -58,7 +68,7 @@ def collect_report(cfg: Config, source: str) -> ClusterReport:
         nodes=nodes,
         jobs=jobs,
         filesystems=filesystems,
-        ib_links=sim.collect_infiniband(),
+        ib_links=ib_links,
     )
 
 

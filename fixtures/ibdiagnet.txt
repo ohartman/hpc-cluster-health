@@ -1,0 +1,60 @@
+-------------------------------------------------
+Load Plugins from: /usr/share/ibdiagnet2.1.1/plugins/
+(You can specify more paths by setting IBDIAGNET_PLUGINS_PATH env variable)
+
+Plugin Name                                   Result     Comment
+libibdiagnet_cable_diag_plugin-2.1.1          Succeeded  Plugin loaded
+libibdiagnet_phy_diag_plugin-2.1.1            Succeeded  Plugin loaded
+
+-------------------------------------------------
+Discovery
+-I- Discovering ... 48 nodes (16 Switches & 32 CA-s) discovered.
+
+-------------------------------------------------
+Lids Check
+-I- Lids Check finished successfully
+
+-------------------------------------------------
+Links Check
+-I- Links Check finished successfully
+
+-------------------------------------------------
+Subnet Manager
+-I- SM is running on node:
+
+-------------------------------------------------
+Port Counters
+-I- Reading port counters (Data & Errors) ...
+-W- link: "H-b8cef603005e1a40"/P1<-->"S-ec0d9a0300abc111"/P5 - Either mlx5_0/U1 or spine01/P5 have "SymbolErrors" increased by 142 (threshold=10)
+-W- link: "H-b8cef603005e1a48"/P1<-->"S-ec0d9a0300abc112"/P7 - Either mlx5_1/U1 or spine01/P7 have "LinkDownedCounter" increased by 3 (threshold=1)
+-W- link: "H-043f720300abc100"/P2<-->"S-ec0d9a0300abc113"/P12 - Either mlx5_2/U2 or leaf04/P12 have "PortRcvErrors" increased by 58 (threshold=10)
+-W- link: "H-043f720300abc100"/P2<-->"S-ec0d9a0300abc113"/P12 - Either mlx5_2/U2 or leaf04/P12 have "SymbolErrors" increased by 312 (threshold=10)
+-W- link: "S-ec0d9a0300abc111"/P18<-->"S-ec0d9a0300abc120"/P1 - Either spine01/P18 or spine02/P1 have "SymbolErrors" increased by 28 (threshold=10)
+-I- PM Counters:
+-I-     Total ports                 = 96
+-I-     Total links                 = 48
+-I-     Ports with errors           = 5
+-I-     Links with symbol errors    = 3
+-I-     Links with link downed      = 1
+-I-     Links with receive errors   = 1
+-I- Port Counters finished
+
+-------------------------------------------------
+Nodes Information
+-I- Reading ...
+
+-------------------------------------------------
+Summary
+-I- Stage                                    Warnings  Errors    Comment
+-I- Discovery                                0         0
+-I- Lids Check                               0         0
+-I- Links Check                              0         0
+-I- Subnet Manager                           0         0
+-I- Port Counters                            5         0
+-I- Nodes Information                        0         0
+-I- Speed / Width checks                     0         0
+-I- Partition Keys                           0         0
+-I- Alias GUIDs                              0         0
+
+-I- You can find detailed reports in the directory "/var/tmp/ibdiagnet2"
+-I- Done. Run time was 4 seconds.
