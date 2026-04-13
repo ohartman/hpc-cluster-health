@@ -41,3 +41,13 @@ critical = 0.92
 # Job pending time in hours.
 wait_warning_hours = 4.0
 wait_critical_hours = 12.0
+
+[server]
+# Settings for the Flask service (python3 -m hpc_monitor.server).
+# The CLI (python3 -m hpc_monitor) ignores this section.
+host = "0.0.0.0"
+port = 8080
+# How often the background collector regenerates the report.
+refresh_seconds = 60
+# /healthz returns 503 if the last successful collection is older than this.
+healthz_staleness_limit = 300

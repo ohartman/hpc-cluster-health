@@ -21,6 +21,15 @@ class Thresholds:
 
 
 @dataclass
+class ServerConfig:
+    host: str = "0.0.0.0"
+    port: int = 8080
+    refresh_seconds: int = 60
+    # Max seconds since last successful collection before /healthz returns 503.
+    healthz_staleness_limit: int = 300
+
+
+@dataclass
 class Config:
     cluster_name: str = "aurora"
     source: str = "sim"               # sim | slurm | auto
@@ -30,6 +39,7 @@ class Config:
     history_display_days: int = 7
     history_retention_days: int = 90
     thresholds: Thresholds = field(default_factory=Thresholds)
+    server: ServerConfig = field(default_factory=ServerConfig)
 
 
 DEFAULT_CONFIG_NAMES = ("hpc_monitor.toml", "hpc-monitor.toml")
@@ -86,6 +96,15 @@ def load_config(path: Path | None) -> Config:
             "wait_warning_hours", Thresholds.queue_wait_warning_hours),
         queue_wait_critical_hours=queue.get(
             "wait_critical_hours", Thresholds.queue_wait_critical_hours),
+    )
+
+    server = data.get("server", {})
+    cfg.server = ServerConfig(
+        host=server.get("host", ServerConfig.host),
+        port=server.get("port", ServerConfig.port),
+        refresh_seconds=server.get("refresh_seconds", ServerConfig.refresh_seconds),
+        healthz_staleness_limit=server.get(
+            "healthz_staleness_limit", ServerConfig.healthz_staleness_limit),
     )
 
     return cfg
