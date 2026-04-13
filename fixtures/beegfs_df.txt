@@ -1,0 +1,17 @@
+METADATA SERVERS:
+TargetID   Cap. Pool        Total         Free    %      ITotal       IFree    %
+========   =========        =====         ====    =      ======       =====    =
+       1       normal      1.8TiB       1.7TiB  94%     1932.7M     1845.2M  95%
+       2       normal      1.8TiB       1.7TiB  94%     1932.7M     1848.9M  96%
+
+STORAGE TARGETS:
+TargetID   Cap. Pool        Total         Free    %      ITotal       IFree    %
+========   =========        =====         ====    =      ======       =====    =
+     101       normal     64.0TiB      18.4TiB  29%      156.2M      134.8M  86%
+     102       normal     64.0TiB      19.1TiB  30%      156.2M      135.2M  87%
+     103       normal     64.0TiB      17.8TiB  28%      156.2M      133.4M  85%
+     104       normal     64.0TiB      18.2TiB  28%      156.2M      134.1M  86%
+     105       normal     64.0TiB      18.9TiB  30%      156.2M      135.8M  87%
+     106       normal     64.0TiB      17.5TiB  27%      156.2M      132.9M  85%
+     107       normal     64.0TiB      18.7TiB  29%      156.2M      134.5M  86%
+     108       normal     64.0TiB      18.0TiB  28%      156.2M      133.7M  86%

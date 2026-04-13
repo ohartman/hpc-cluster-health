@@ -1,0 +1,8 @@
+UUID                       bytes        Used   Available Use% Mounted on
+work-MDT0000_UUID           900G       1.2G       898G   1% /work[MDT:0]
+work-OST0000_UUID          16.0T       850G      15.1T   6% /work[OST:0]
+work-OST0001_UUID          16.0T       780G      15.2T   5% /work[OST:1]
+work-OST0002_UUID          16.0T       920G      15.0T   6% /work[OST:2]
+work-OST0003_UUID          16.0T       880G      15.1T   6% /work[OST:3]
+
+filesystem_summary:        64.0T       3.4T      60.4T   6% /work

@@ -1,0 +1,15 @@
+UUID                       bytes        Used   Available Use% Mounted on
+scratch-MDT0000_UUID        1.8T       45.2G        1.7T   3% /scratch[MDT:0]
+scratch-MDT0001_UUID        1.8T       42.1G        1.7T   3% /scratch[MDT:1]
+scratch-OST0000_UUID       32.0T       24.5T        7.5T  77% /scratch[OST:0]
+scratch-OST0001_UUID       32.0T       25.1T        6.9T  78% /scratch[OST:1]
+scratch-OST0002_UUID       32.0T       23.8T        8.2T  74% /scratch[OST:2]
+scratch-OST0003_UUID       32.0T       26.4T        5.6T  82% /scratch[OST:3]
+scratch-OST0004_UUID       32.0T       24.9T        7.1T  78% /scratch[OST:4]
+scratch-OST0005_UUID       32.0T       25.7T        6.3T  80% /scratch[OST:5]
+scratch-OST0006_UUID       32.0T       24.3T        7.7T  76% /scratch[OST:6]
+scratch-OST0007_UUID       32.0T : inactive device
+scratch-OST0008_UUID       32.0T       25.8T        6.2T  81% /scratch[OST:8]
+scratch-OST0009_UUID       32.0T       24.1T        7.9T  75% /scratch[OST:9]
+
+filesystem_summary:       320.0T      224.6T       63.4T  78% /scratch

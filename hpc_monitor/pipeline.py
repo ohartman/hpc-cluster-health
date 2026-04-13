@@ -7,6 +7,7 @@ import sqlite3
 import sys
 
 from .alerts import build_snapshot, evaluate_alerts
+from .collectors import filesystems as fs_real
 from .collectors import sim
 from .collectors import slurm
 from .config import Config
@@ -39,14 +40,24 @@ def collect_report(cfg: Config, source: str) -> ClusterReport:
         nodes = [n for n in nodes if n.partition in keep]
         jobs = [j for j in jobs if j.partition in keep]
 
-    # Filesystems and IB are still simulation-only — phase 2/3 add real parsers.
+    # Filesystem collection: in slurm/real mode, try the real parsers
+    # (lfs df, df -hT, beegfs-df). If none of those commands are available
+    # on this host, fall back to simulation so the dashboard still renders.
+    # InfiniBand collection is still simulation-only — phase 3 adds real.
+    if resolved == "slurm":
+        filesystems = fs_real.collect_all()
+        if not filesystems:
+            filesystems = sim.collect_filesystems()
+    else:
+        filesystems = sim.collect_filesystems()
+
     return ClusterReport(
         generated_at=dt.datetime.now(),
         cluster_name=cfg.cluster_name,
         source=resolved,
         nodes=nodes,
         jobs=jobs,
-        filesystems=sim.collect_filesystems(),
+        filesystems=filesystems,
         ib_links=sim.collect_infiniband(),
     )
 

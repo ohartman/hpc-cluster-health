@@ -1,0 +1,10 @@
+Filesystem                     Type      Size  Used Avail Use% Mounted on
+/dev/mapper/rhel-root          xfs        50G   12G   39G  24% /
+devtmpfs                       devtmpfs  126G     0  126G   0% /dev
+tmpfs                          tmpfs     126G   84K  126G   1% /dev/shm
+tmpfs                          tmpfs     126G   18M  126G   1% /run
+tmpfs                          tmpfs     126G     0  126G   0% /sys/fs/cgroup
+/dev/sda1                      xfs      1014M  198M  817M  20% /boot
+nfs-server.example.edu:/home   nfs       128T   94T   35T  73% /home
+nfs-server.example.edu:/apps   nfs        50T   38T   13T  75% /apps
+tmpfs                          tmpfs      26G     0   26G   0% /run/user/1001
